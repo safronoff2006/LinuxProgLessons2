@@ -150,6 +150,7 @@ void removesem(int sid) {
 }
 
 unsigned short get_member_count(int sid) {
+	int rc;
 	union semun {
 		int val;
 		struct semid_ds *buf;
@@ -159,6 +160,13 @@ unsigned short get_member_count(int sid) {
 	struct semid_ds mysemds;
 
 	semopts.buf = &mysemds;
+
+	rc = semctl(sid, 0, IPC_STAT, semopts);
+		if (rc == -1) {
+			perror("semctl");
+			exit(1);
+		}
+
 	/* Return number of members in the semaphore set */
 	return (semopts.buf->sem_nsems);
 }

@@ -15,8 +15,8 @@
 
 int get_sem_count(int sid);
 void show_sem_usage(int sid);
-int get_sem_count(int sid);
-void dispval(int sid);
+
+
 
 int main(int argc, char *argv[])
 {
@@ -69,11 +69,4 @@ int get_sem_count(int sid)
   return(semopts.buf->sem_nsems);
 }
 
-void dispval(int sid)
-{
-  int semval;
-
-  semval = semctl(sid, 0, GETVAL, 0);
-  printf("semval is %d\n", semval);
-}
 

@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 void opensem(int *sid, key_t key) {
 	/* Open the semaphore set - do not create! */
 	if ((*sid = semget(key, 0, 0666)) == -1) {
-		printf("Semaphore set does not exist!\n");
+		printf("Множество семафоров не существует!\n");
 
 	}
 }
@@ -97,11 +97,11 @@ void createsem(int *sid, key_t key, int members) {
 	} semopts;
 
 	if (members > SEMMSL) {
-		printf("Sorry, max number of semaphores in a set is %d\n",
+		printf("Извините, максимальное количество семафоров установлено в  %d\n",
 		SEMMSL);
 		printf("\n>");
 	}
-	printf("Attempting to create new semaphore set with %d members\n", members);
+	printf("Попытка создания нового  множества семафоров с %d членами\n", members);
 	if ((*sid = semget(key, members, IPC_CREAT | IPC_EXCL | 0666)) == -1) {
 		fprintf(stderr, "Semaphore set already exists!\n");
 
@@ -116,12 +116,12 @@ void locksem(int sid, int member) {
 	struct sembuf sem_lock = { 0, -1, IPC_NOWAIT };
 
 	if (member < 0 || member > (get_member_count(sid) - 1)) {
-		fprintf(stderr, "semaphore member %d out of range\n", member);
+		fprintf(stderr, "Номер семафора %d выходит за границы\n", member);
 
 	}
 	/* Attempt to lock the semaphore set */
 	if (!getval(sid, member)) {
-		fprintf(stderr, "Semaphore resources exhausted (no lock)!\n");
+		fprintf(stderr, "Ресурс семафора исчерпаны (без блокировки)!\n");
 
 	}
 	sem_lock.sem_num = member;
@@ -129,7 +129,7 @@ void locksem(int sid, int member) {
 		fprintf(stderr, "Lock failed\n");
 
 	} else
-		printf("Semaphore resources decremented by one (locked)\n");
+		printf("Ресурс семафора уменьшен на единицу (заблокирован)\n");
 
 	dispval(sid, member);
 }
@@ -139,13 +139,13 @@ void unlocksem(int sid, int member) {
 	int semval;
 
 	if (member < 0 || member > (get_member_count(sid) - 1)) {
-		fprintf(stderr, "semaphore member %d out of range\n", member);
+		fprintf(stderr, "Номер семафора %d выходит за границы\n", member);
 
 	}
 	/* Is the semaphore set locked? */
 	semval = getval(sid, member);
 	if (semval == SEM_RESOURCE_MAX) {
-		fprintf(stderr, "Semaphore not locked!\n");
+		fprintf(stderr, "Семафор не заблокирован!\n");
 
 	}
 	sem_unlock.sem_num = member;
@@ -154,14 +154,14 @@ void unlocksem(int sid, int member) {
 		fprintf(stderr, "Unlock failed\n");
 		printf("\n>");
 	} else
-		printf("Semaphore resources incremented by one (unlocked)\n");
+		printf("Ресурс семафора увеличен на единицу (разблокирован)\n");
 
 	dispval(sid, member);
 }
 
 void removesem(int sid) {
 	semctl(sid, 0, IPC_RMID, 0);
-	printf("Semaphore removed\n");
+	printf("Множество семафоров удалено\n");
 }
 
 unsigned short get_member_count(int sid) {
@@ -209,19 +209,19 @@ void changemode(int sid, char *mode) {
 		perror("semctl");
 		exit(1);
 	}
-	printf("Old permissions were %o\n", semopts.buf->sem_perm.mode);
+	printf("Старые права были%o\n", semopts.buf->sem_perm.mode);
 	/* Change the permissions on the semaphore */
 	sscanf(mode, "%ho", &semopts.buf->sem_perm.mode);
 	/* Update the internal data structure */
 	semctl(sid, 0, IPC_SET, semopts);
-	printf("Updated...\n");
+	printf("Обновлено...\n");
 }
 
 void dispval(int sid, int member) {
 	int semval;
 
 	semval = semctl(sid, member, GETVAL, 0);
-	printf("semval for member %d is %d\n", member, semval);
+	printf("Значение семафора для члена %d is %d\n", member, semval);
 }
 
 void usage(int err) {
@@ -255,7 +255,7 @@ void show() {
 	key_t key  = ftok("/tmp", 1);;
 
 	if ((sems_id = semget(key, 1, 0666)) == -1) {
-		printf("Semaphore set does not exist\n");
+		printf("Множество семафоров не существует\n");
 
 	} else
 		show_sem_usage(sems_id);
@@ -265,30 +265,13 @@ void show() {
 void show_sem_usage(int sid) {
 	int cntr = 0, maxsems, semval;
 
-	maxsems = get_sem_count(sid);
+	maxsems = get_member_count(sid);
 	while (cntr < maxsems) {
 		semval = semctl(sid, cntr, GETVAL, 0);
-		printf("Semaphore #%d:  --> %d\n", cntr, semval);
+		printf("Семафор #%d:  --> %d\n", cntr, semval);
 		cntr++;
 	}
 }
 
-int get_sem_count(int sid) {
-	int rc;
-	struct semid_ds mysemds;
-	union semun {
-		int val;
-		struct semid_ds *buf;
-		unsigned short int *array;
-	} semopts;
 
-	/* Get current values for internal data structure */
-	semopts.buf = &mysemds;
-	if ((rc = semctl(sid, 0, IPC_STAT, semopts)) == -1) {
-		perror("semctl");
-		exit(1);
-	}
-	/* return number of semaphores in set */
-	return (semopts.buf->sem_nsems);
-}
 

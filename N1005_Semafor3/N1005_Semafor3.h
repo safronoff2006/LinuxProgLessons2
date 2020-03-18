@@ -24,7 +24,6 @@ void dispval(int, int);
 void changemode(int, char*);
 void usage(int);
 void show(void);
-int get_sem_count(int);
 void show_sem_usage(int);
 
 

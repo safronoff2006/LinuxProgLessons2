@@ -7,7 +7,7 @@ ifeq ($(BUILD_MODE),debug)
 else ifeq ($(BUILD_MODE),run)
 	CFLAGS += -O2
 else
-	$(error Build mode $(BUILD_MODE) not supported by this Makefile)
+#	$(error Build mode $(BUILD_MODE) not supported by this Makefile)
 endif
 
 all:	N1005_Semafor3
